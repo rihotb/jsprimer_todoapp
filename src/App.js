@@ -1,31 +1,41 @@
-import { render } from "./view/html-util.js"
+import { render } from "./view/html-util.js";
 import { TodoListModel } from "./model/TodoListModel.js";
-import { TodoItemModel } from "./model/TodoItemModel.js"
+import { TodoItemModel } from "./model/TodoItemModel.js";
 import { TodoListView } from "./view/TodoListView.js";
 
 export class App {
-
   constructor() {
     this.todoListView = new TodoListView();
     this.todoListModel = new TodoListModel([]);
+    this.formElement = null;
+    this.inputElement = null;
   }
 
   handleAdd(title) {
-    this.todoListModel.addTodo(new TodoItemModel({ title, completed: false }))
+    this.todoListModel.addTodo(new TodoItemModel({ title, completed: false }));
   }
 
   handleUpdate({ id, completed }) {
-    this.todoListModel.updateTodo({ id, completed })
+    this.todoListModel.updateTodo({ id, completed });
   }
 
   handleDelete({ id }) {
-    this.todoListModel.deleteTodo({ id })
+    this.todoListModel.deleteTodo({ id });
   }
 
+  handleSubmit = (event) => {
+    event.preventDefault();
+    if (!this.inputElement.value) {
+      return;
+    }
+    this.handleAdd(this.inputElement.value);
+    this.inputElement.value = "";
+  };
+
   mount() {
-    const formElement = document.querySelector("#js-form");
-    const inputElement = document.querySelector('#js-form-input');
-    const containerElement = document.querySelector('#js-todo-list');
+    this.formElement = document.querySelector("#js-form");
+    this.inputElement = document.querySelector("#js-form-input");
+    const containerElement = document.querySelector("#js-todo-list");
     const todoItemCountElement = document.querySelector("#js-todo-count");
 
     this.todoListModel.onChange(() => {
@@ -36,25 +46,16 @@ export class App {
         },
         onDeleteTodo: ({ id }) => {
           this.handleDelete({ id });
-        }
+        },
       });
       render(todoListElement, containerElement);
       todoItemCountElement.textContent = `Todoアイテム数: ${this.todoListModel.getTotalCount()}`;
     });
 
-    formElement.addEventListener("submit", (event) => {
-      event.preventDefault();
-      if (!inputElement.value) {
-        return
-      }
-      this.handleAdd(inputElement.value)
-      inputElement.value = ""
-    })
+    this.formElement.addEventListener("submit", this.handleSubmit);
   }
 
   unmount() {
-    const formElement = document.querySelector("#js-form");
-    formElement.removeEventListener("submit", event)
+    this.formElement.removeEventListener("submit", event);
   }
-
 }
